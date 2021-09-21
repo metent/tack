@@ -15,98 +15,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:path/path.dart' as path;
+
+import 'package:tack/multitree/fs.dart';
+import 'package:tack/multitree/nodelist.dart';
+
 import 'dart:io';
+
+export 'package:tack/multitree/nodelist.dart' show Node, TaskStatus, InvalidDataException;
 
 const dataDirName = "test-tree";
 
-enum TaskStatus {
-  Pending,
-  Finished,
-}
-
-class Node {
-  String title;
-  final List<int> parentIdList = [];
-  final List<int> childIdList;
-  TaskStatus status;
-
-  Node(this.title, this.childIdList, this.status);
-}
-
-class InvalidDataException implements Exception {}
-
 List<Node?> build() {
-  List<Node?> nodeList = [];
-
-  final dataDir = Directory(dataDirName);
-  for (var entity in dataDir.listSync()) {
-    if (!(entity is Directory)) throw InvalidDataException();
-
-    final nodeDir = Directory(entity.path);
-    final nodeId = int.parse(entity.path.split('/').last);
-    final nodeTitle = File(entity.path + '/title').readAsStringSync();
-    final nodeStatusNum =
-        int.parse(File(entity.path + '/status').readAsStringSync());
-    final childIdList = childIdListFromFs(nodeDir);
-
-    final node = Node(nodeTitle, childIdList, TaskStatus.values[nodeStatusNum]);
-
-    if (nodeId + 1 > nodeList.length) {
-      for (int i = nodeList.length; i < nodeId; i++) nodeList.add(null);
-      nodeList.add(node);
-    } else if (nodeList[nodeId] != null) {
-      throw InvalidDataException();
-    } else {
-      nodeList[nodeId] = node;
-    }
-  }
-
-  populateParentIds(nodeList);
-
-  return nodeList;
+  return multitreeFromFs(dataDirName);
 }
 
-List<int> childIdListFromFs(Directory nodeDir) {
-  List<int> childIdList = [];
-
-  for (var entity in nodeDir.listSync()) {
-    final childId = int.tryParse(entity.path.split('/').last);
-    if (childId == null) continue;
-    childIdList.add(childId);
-  }
-
-  return childIdList;
-}
-
-void populateParentIds(List<Node?> nodeList) {
-  for (int id = 0; id < nodeList.length; id++) {
-    final parentNode = nodeList[id];
-    if (parentNode == null) continue;
-    for (int childId in parentNode.childIdList) {
-      final childNode = nodeList[childId];
-      if (childNode == null) throw InvalidDataException();
-
-      childNode.parentIdList.add(id);
-    }
-  }
-}
-
-void changeStatus(int nodeID, TaskStatus status) {
+void changeStatus(int nodeId, TaskStatus status) {
   int nodeStatusNum = status == TaskStatus.Finished ? 1 : 0;
-  File(dataDirName + "/$nodeID" + "/status")
+  File(path.join(dataDirName, "$nodeId", "status"))
       .writeAsStringSync(nodeStatusNum.toString());
 }
 
-void addNewChildNode(var parentID, int id, String titleText) {
-  // create its directory and title
-  Directory(dataDirName + "/$id").createSync();
-  File(dataDirName + "/$id" + "/title").createSync();
-  File(dataDirName + "/$id" + "/title").writeAsStringSync(titleText);
-  File(dataDirName + "/$id" + "/status").createSync();
-  File(dataDirName + "/$id" + "/status").writeAsStringSync("0");
-
-  // add this to child of parent
-  File(dataDirName + "/$parentID" + "/$id").createSync();
+void addNewChildNode(var parentId, int id, String titleText) {
+  addNodeData(dataDirName, id, parentId, titleText);
 }
 
 void deleteNode(var nodeID, List<Node?> nodeList) {
@@ -117,14 +48,14 @@ void deleteNode(var nodeID, List<Node?> nodeList) {
   }
 
   // delete the task itself
-  Directory(dataDirName + "/$nodeID").deleteSync(recursive: true);
+  Directory(path.join(dataDirName, "$nodeID")).deleteSync(recursive: true);
 
   // delete its folder in parents
   for (var parentDir in nodeList[nodeID]!.parentIdList) {
-    File(dataDirName + "/$parentDir" + "/$nodeID").deleteSync();
+    File(path.join(dataDirName, "$parentDir", "$nodeID")).deleteSync();
   }
 }
 
 void changeTitle(int nodeID, String newTitle) {
-  File(dataDirName + "/$nodeID" + "/title").writeAsStringSync(newTitle);
+  File(path.join(dataDirName, "$nodeID", "title")).writeAsStringSync(newTitle);
 }
