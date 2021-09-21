@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:path/path.dart' as path;
+
 import 'package:tack/multitree/fs.dart';
 import 'package:tack/multitree/nodelist.dart';
 
@@ -30,7 +32,7 @@ List<Node?> build() {
 
 void changeStatus(int nodeId, TaskStatus status) {
   int nodeStatusNum = status == TaskStatus.Finished ? 1 : 0;
-  File(dataDirName + "/$nodeId" + "/status")
+  File(path.join(dataDirName, "$nodeId", "status"))
       .writeAsStringSync(nodeStatusNum.toString());
 }
 
@@ -46,14 +48,14 @@ void deleteNode(var nodeID, List<Node?> nodeList) {
   }
 
   // delete the task itself
-  Directory(dataDirName + "/$nodeID").deleteSync(recursive: true);
+  Directory(path.join(dataDirName, "$nodeID")).deleteSync(recursive: true);
 
   // delete its folder in parents
   for (var parentDir in nodeList[nodeID]!.parentIdList) {
-    File(dataDirName + "/$parentDir" + "/$nodeID").deleteSync();
+    File(path.join(dataDirName, "$parentDir", "$nodeID")).deleteSync();
   }
 }
 
 void changeTitle(int nodeID, String newTitle) {
-  File(dataDirName + "/$nodeID" + "/title").writeAsStringSync(newTitle);
+  File(path.join(dataDirName, "$nodeID", "title")).writeAsStringSync(newTitle);
 }
