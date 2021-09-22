@@ -17,7 +17,13 @@
 
 typedef NodeList = List<Node?>;
 
-class CorruptedDataException implements Exception {}
+class MultitreeException {
+  final String cause;
+
+  MultitreeException(this.cause);
+
+  String toString() => "MultitreeException: " + cause;
+}
 
 enum TaskStatus {
   Pending,
@@ -34,35 +40,37 @@ class Node {
 }
 
 extension Multitree on NodeList {
-  void adjust(int id, Node node) {
+  void adjust(final int id, final Node node) {
     if (id + 1 > this.length) {
-      for (int i = this.length; i < id; i++) this.add(null);
+      for (var i = this.length; i < id; i++) this.add(null);
       this.add(node);
     } else if (this[id] != null) {
-      throw CorruptedDataException();
+      throw MultitreeException('Found two or more nodes with same ID $id');
     } else {
       this[id] = node;
     }
   }
 
   void populateParentIds() {
-    for (int id = 0; id < this.length; id++) {
-      Node? node = this[id];
+    for (var id = 0; id < this.length; id++) {
+      final node = this[id];
       if (node == null) continue;
 
-      for (int childId in node.childIdList) {
+      for (var childId in node.childIdList) {
         final childNode = this[childId];
-        if (childNode == null) throw CorruptedDataException();
+        if (childNode == null) throw MultitreeException(
+          'Node ID $id has non-existent child $childId'
+        );
         childNode.parentIdList.add(id);
       }
     }
   }
 
-  void addChild(int parentId, String title) {
-    final Node childNode = Node(title, [], TaskStatus.Pending);
+  void addChild(final int parentId, final String title) {
+    final childNode = Node(title, [], TaskStatus.Pending);
     childNode.parentIdList.add(parentId);
 
-    final Node? parentNode = this[parentId];
+    final parentNode = this[parentId];
     if (parentNode == null) return;
     parentNode.childIdList.add(this.length);
 

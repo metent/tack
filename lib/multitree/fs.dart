@@ -21,37 +21,95 @@ import 'package:path/path.dart' as path;
 
 import 'nodelist.dart';
 
-NodeList multitreeFromFs(String dataDirName) {
-  final NodeList mtree = [];
-  for (var entity in Directory(dataDirName).listSync()) {
-    if (!(entity is Directory)) throw CorruptedDataException();
+const rootTitleName = 'Default List';
 
-    final id = int.parse(path.basename(entity.path));
-    final title = File(path.join(entity.path, 'title')).readAsStringSync();
-    final status = TaskStatus.values[int.parse(
-        File(path.join(entity.path, 'status')).readAsStringSync()
-    )];
-    final List<int> childIdList = _childIdListFromFs(entity.path);
+class FsException implements Exception {
+  final String cause;
+
+  FsException(this.cause);
+
+  String toString() => "FsException: " + cause;
+}
+
+void ensureRootNodeDir(String dataDirName) {
+  Directory(path.join(dataDirName, '0')).createSync(recursive: true);
+
+  File rootTitleFile = File(path.join(dataDirName, '0', 'title'));
+  if (!rootTitleFile.existsSync()) rootTitleFile.writeAsStringSync(rootTitleName);
+
+  File rootStatusFile = File(path.join(dataDirName, '0', 'status'));
+  if (!rootStatusFile.existsSync()) rootStatusFile.writeAsStringSync('0');
+}
+
+NodeList multitreeFromFs(final String dataDirName) {
+  final NodeList nodeList = [];
+
+  for (var entity in Directory(dataDirName).listSync()) {
+    if (!(entity is Directory)) throw FsException(
+      "${entity.path} is not a valid directory."
+    );
+
+    final id = _idFromDir(entity.path);
+    final title = _titleFromFile(entity.path);
+    final status = _statusFromFile(entity.path);
+    final childIdList = _childIdListFromFs(entity.path);
 
     final node = Node(title, childIdList, status);
 
-    mtree.adjust(id, node);
+    nodeList.adjust(id, node);
   }
 
-  mtree.populateParentIds();
+  nodeList.populateParentIds();
 
-  return mtree;
+  return nodeList;
 }
 
-void addNodeData(String dataDirName, int id, int parentId, String title) {
+void addNodeData(
+  final String dataDirName,
+  final int id,
+  final int parentId,
+  final String title
+) {
   Directory(path.join(dataDirName, '$id')).createSync();
   File(path.join(dataDirName, '$id', 'title')).writeAsStringSync(title);
   File(path.join(dataDirName, '$id', 'status')).writeAsStringSync('0');
   File(path.join(dataDirName, '$parentId', '$id')).createSync();
 }
 
-List<int> _childIdListFromFs(String nodeDirName) {
-  List<int> childIdList = [];
+int _idFromDir(final String nodeDirName) {
+  final id = int.tryParse(path.basename(nodeDirName));
+  if (id == null) throw FsException('$nodeDirName is not a valid node directory');
+
+  return id;
+}
+
+String _titleFromFile(final String nodeDirName) {
+  final titleFile = File(path.join(nodeDirName, 'title'));
+  if (!titleFile.existsSync()) throw FsException(
+    '$nodeDirName does not contain a title file'
+  );
+
+  return titleFile.readAsStringSync();
+}
+
+TaskStatus _statusFromFile(final String nodeDirName) {
+  final statusFile = File(path.join(nodeDirName, 'status'));
+  if (!statusFile.existsSync()) throw FsException(
+    '$nodeDirName does not contain a status file'
+  );
+
+  final statusStr = statusFile.readAsStringSync();
+
+  final statusNum = int.tryParse(statusStr);
+  if (statusNum == null) throw FsException(
+    '$nodeDirName contains invalid status: $statusNum'
+  );
+
+  return TaskStatus.values[statusNum];
+}
+
+List<int> _childIdListFromFs(final String nodeDirName) {
+  final List<int> childIdList = [];
   for (var entity in Directory(nodeDirName).listSync()) {
     final childId = int.tryParse(path.basename(entity.path));
     if (childId == null) continue;
