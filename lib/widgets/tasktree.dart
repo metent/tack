@@ -44,63 +44,77 @@ class TreeNodeWidgetState extends State<TreeNodeWidget> {
   }
 
   Widget buildWidgetTree(final int rootId, double level) {
-    return Dismissible(
-      key: Key(rootId.toString()),
-      background: Container(color: Colors.red),
-      onDismissed: (direction) {
-        multitree.deleteNode(rootId, widget.nodeList);
-        widget.nodeList = multitree.build();
+    return
+        // Dismissible(
+        // key: Key(rootId.toString()),
+        // background: Container(color: Colors.red),
+        // onDismissed: (direction) {},
+        // child:
+        GestureDetector(
+      onLongPress: () {
+        parentId = rootId;
+        textFieldTask = Task.changeTitle;
+        widget.toggleVisibility();
       },
-      child: GestureDetector(
-        onLongPress: () {
-          parentId = rootId;
-          textFieldTask = Task.changeTitle;
-          widget.toggleVisibility();
-        },
-        child: ExpansionTile(
-          leading: Padding(
-            padding: EdgeInsets.fromLTRB(level * 10, 0, 0, 0),
-            child: Checkbox(
-              value: widget.nodeList[rootId]!.status ==
-                      multitree.TaskStatus.Finished
-                  ? true
-                  : false,
-              onChanged: (bool? value) {
-                setState(() {
-                  // just toggle taskstatus
-                  widget.nodeList[rootId]!.status = value!
-                      ? multitree.TaskStatus.Finished
-                      : multitree.TaskStatus.Pending;
-                  multitree.changeStatus(
-                      rootId, widget.nodeList[rootId]!.status);
-                });
-              },
-            ),
-          ),
-          title: Text(
-            widget.nodeList[rootId]!.title,
-            style: TextStyle(
-              decoration: widget.nodeList[rootId]!.status ==
-                      multitree.TaskStatus.Finished
-                  ? TextDecoration.lineThrough
-                  : TextDecoration.none,
-            ),
-          ),
-          children: generateChildWidgetList(rootId, level + 1),
-          trailing: IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              textFieldTask = Task.addChild;
-              parentId = rootId;
-              widget.toggleVisibility();
+      child: ExpansionTile(
+        leading: Padding(
+          padding: EdgeInsets.only(left: level * 10),
+          child: Checkbox(
+            value:
+                widget.nodeList[rootId]!.status == multitree.TaskStatus.Finished
+                    ? true
+                    : false,
+            onChanged: (bool? value) {
+              setState(() {
+                // just toggle taskstatus
+                widget.nodeList[rootId]!.status = value!
+                    ? multitree.TaskStatus.Finished
+                    : multitree.TaskStatus.Pending;
+                multitree.changeStatus(rootId, widget.nodeList[rootId]!.status);
+              });
             },
           ),
-          onExpansionChanged: (value) {
-            widget.setVisibilityFalse();
-          },
         ),
+        title: Text(
+          widget.nodeList[rootId]!.title,
+          style: TextStyle(
+            decoration:
+                widget.nodeList[rootId]!.status == multitree.TaskStatus.Finished
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+          ),
+        ),
+        children: generateChildWidgetList(rootId, level + 1),
+        trailing: Wrap(
+          spacing: 5,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                textFieldTask = Task.addChild;
+                parentId = rootId;
+                widget.toggleVisibility();
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outlined),
+              onPressed: () {
+                multitree.deleteNode(rootId, widget.nodeList);
+                widget.nodeList = multitree.build();
+                //     // textFieldTask = Task.addChild;
+                //     // parentId = rootId;
+                //     // widget.toggleVisibility();
+              },
+            ),
+          ],
+        ),
+        // ),
+        // onExpansionChanged: (value) {
+        //   widget.setVisibilityFalse();
+        // },
       ),
     );
+    // );
   }
 
   List<Widget> generateChildWidgetList(final int rootId, double level) {

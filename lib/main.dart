@@ -20,7 +20,11 @@ import 'package:tack/multitree.dart' as multitree;
 import 'package:tack/widgets/textfield.dart';
 import 'package:tack/widgets/tasktree.dart';
 
-const appBarTitle = "Task Tree";
+const appBarTitle = " Tasks ";
+
+void main() {
+  runApp(MaterialApp(home: Home()));
+}
 
 class Home extends StatefulWidget {
   @override
@@ -47,15 +51,15 @@ class HomeState extends State<Home> {
       child: Scaffold(
           appBar: AppBar(
             title: Text(appBarTitle),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.add),
-                onPressed: () {
-                  taskTree.currentState!.parentId = 0;
-                  toggleVisibility();
-                },
-              )
-            ],
+            //   actions: [
+            //     IconButton(
+            //       icon: Icon(Icons.add),
+            //       onPressed: () {
+            //         taskTree.currentState!.parentId = 0;
+            //         toggleVisibility();
+            //       },
+            //     )
+            //   ],
           ),
           body: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -80,8 +84,4 @@ class HomeState extends State<Home> {
     textController.text = "";
     setState(() {});
   }
-}
-
-void main() {
-  runApp(MaterialApp(home: Home()));
 }
