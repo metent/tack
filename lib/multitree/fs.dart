@@ -22,24 +22,21 @@ import 'package:path/path.dart' as path;
 import 'nodelist.dart';
 
 NodeList multitreeFromFs(String dataDirName) {
-  final NodeList mtree = [];
+  final NodeList mtree = []; // empty list
   for (var entity in Directory(dataDirName).listSync()) {
     if (!(entity is Directory)) throw CorruptedDataException();
 
     final id = int.parse(path.basename(entity.path));
     final title = File(path.join(entity.path, 'title')).readAsStringSync();
-    final status = TaskStatus.values[int.parse(
-        File(path.join(entity.path, 'status')).readAsStringSync()
-    )];
+    final status = TaskStatus.values[
+        int.parse(File(path.join(entity.path, 'status')).readAsStringSync())];
     final List<int> childIdList = _childIdListFromFs(entity.path);
 
     final node = Node(title, childIdList, status);
 
     mtree.adjust(id, node);
   }
-
   mtree.populateParentIds();
-
   return mtree;
 }
 

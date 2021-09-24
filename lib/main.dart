@@ -23,7 +23,7 @@ import 'package:tack/widgets/tasktree.dart';
 const appBarTitle = " Tasks ";
 
 void main() {
-  runApp(MaterialApp(home: Home()));
+  runApp(MaterialApp(debugShowCheckedModeBanner: false, home: Home()));
 }
 
 class Home extends StatefulWidget {
@@ -50,16 +50,16 @@ class HomeState extends State<Home> {
       },
       child: Scaffold(
           appBar: AppBar(
-            title: Text(appBarTitle),
-            //   actions: [
-            //     IconButton(
-            //       icon: Icon(Icons.add),
-            //       onPressed: () {
-            //         taskTree.currentState!.parentId = 0;
-            //         toggleVisibility();
-            //       },
-            //     )
-            //   ],
+            title: Text(appBarTitle, style: TextStyle(fontSize: 40)),
+            actions: [
+              GestureDetector(
+                child: Icon(Icons.add),
+                onTap: () {
+                  taskTree.currentState!.parentId = 0;
+                  toggleVisibility();
+                },
+              )
+            ],
           ),
           body: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

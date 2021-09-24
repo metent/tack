@@ -44,13 +44,7 @@ class TreeNodeWidgetState extends State<TreeNodeWidget> {
   }
 
   Widget buildWidgetTree(final int rootId, double level) {
-    return
-        // Dismissible(
-        // key: Key(rootId.toString()),
-        // background: Container(color: Colors.red),
-        // onDismissed: (direction) {},
-        // child:
-        GestureDetector(
+    return GestureDetector(
       onLongPress: () {
         parentId = rootId;
         textFieldTask = Task.changeTitle;
@@ -86,7 +80,7 @@ class TreeNodeWidgetState extends State<TreeNodeWidget> {
         ),
         children: generateChildWidgetList(rootId, level + 1),
         trailing: Wrap(
-          spacing: 5,
+          spacing: 15,
           children: [
             IconButton(
               icon: const Icon(Icons.add),
@@ -96,25 +90,17 @@ class TreeNodeWidgetState extends State<TreeNodeWidget> {
                 widget.toggleVisibility();
               },
             ),
-            IconButton(
-              icon: const Icon(Icons.delete_outlined),
-              onPressed: () {
+            GestureDetector(
+              onLongPress: () {
                 multitree.deleteNode(rootId, widget.nodeList);
                 widget.nodeList = multitree.build();
-                //     // textFieldTask = Task.addChild;
-                //     // parentId = rootId;
-                //     // widget.toggleVisibility();
               },
+              child: Icon(Icons.delete_outlined),
             ),
           ],
         ),
-        // ),
-        // onExpansionChanged: (value) {
-        //   widget.setVisibilityFalse();
-        // },
       ),
     );
-    // );
   }
 
   List<Widget> generateChildWidgetList(final int rootId, double level) {
@@ -157,3 +143,11 @@ class TreeNodeWidgetState extends State<TreeNodeWidget> {
     }
   }
 }
+
+// child: IconButton(
+// icon: const Icon(Icons.delete_outlined),
+// onPressed: () {
+// multitree.deleteNode(rootId, widget.nodeList);
+// widget.nodeList = multitree.build(),
+// },
+// ),

@@ -22,7 +22,10 @@ import 'package:tack/multitree/nodelist.dart';
 
 import 'dart:io';
 
-export 'package:tack/multitree/nodelist.dart' show Node, TaskStatus, InvalidDataException;
+import 'package:tack/widgets/textfield.dart';
+
+export 'package:tack/multitree/nodelist.dart'
+    show Node, TaskStatus, InvalidDataException;
 
 const dataDirName = "test-tree";
 
