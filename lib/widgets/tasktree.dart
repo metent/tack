@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:tack/multitree.dart' as multitree;
 import 'package:tack/widgets/textfield.dart';
@@ -51,54 +53,73 @@ class TreeNodeWidgetState extends State<TreeNodeWidget> {
         multitree.deleteNode(rootId, widget.nodeList);
         widget.nodeList = multitree.build();
       },
-      child: GestureDetector(
-        onLongPress: () {
-          parentId = rootId;
-          textFieldTask = Task.changeTitle;
-          widget.toggleVisibility();
-        },
-        child: ExpansionTile(
-          leading: Padding(
-            padding: EdgeInsets.fromLTRB(level * 10, 0, 0, 0),
-            child: Checkbox(
-              value: widget.nodeList[rootId]!.status ==
-                      multitree.TaskStatus.Finished
-                  ? true
-                  : false,
-              onChanged: (bool? value) {
-                setState(() {
-                  // just toggle taskstatus
-                  widget.nodeList[rootId]!.status = value!
-                      ? multitree.TaskStatus.Finished
-                      : multitree.TaskStatus.Pending;
-                  multitree.changeStatus(
-                      rootId, widget.nodeList[rootId]!.status);
-                });
-              },
-            ),
+      child: ExpansionTile(
+        leading: Padding(
+          padding: EdgeInsets.only(left: level * 10),
+          child: Checkbox(
+            value:
+                widget.nodeList[rootId]!.status == multitree.TaskStatus.Finished
+                    ? true
+                    : false,
+            onChanged: (bool? value) {
+              setState(() {
+                // just toggle taskstatus
+                widget.nodeList[rootId]!.status = value!
+                    ? multitree.TaskStatus.Finished
+                    : multitree.TaskStatus.Pending;
+                multitree.changeStatus(rootId, widget.nodeList[rootId]!.status);
+              });
+            },
           ),
-          title: Text(
+        ),
+        title: GestureDetector(
+          onLongPress: () {
+            parentId = rootId;
+            textFieldTask = Task.changeTitle;
+            widget.toggleVisibility();
+          },
+          child: Text(
             widget.nodeList[rootId]!.title,
             style: TextStyle(
+              fontSize: 18.0,
+              color: Color(0XFF868290),
+              fontWeight: FontWeight.bold,
               decoration: widget.nodeList[rootId]!.status ==
                       multitree.TaskStatus.Finished
                   ? TextDecoration.lineThrough
                   : TextDecoration.none,
             ),
           ),
-          children: generateChildWidgetList(rootId, level + 1),
-          trailing: IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              textFieldTask = Task.addChild;
-              parentId = rootId;
-              widget.toggleVisibility();
-            },
-          ),
-          onExpansionChanged: (value) {
-            widget.setVisibilityFalse();
-          },
         ),
+        children: generateChildWidgetList(rootId, level + 1),
+        trailing: Padding(
+          padding: EdgeInsets.only(right: level * 20),
+          child: Wrap(
+            spacing: 20.0,
+            children: [
+              GestureDetector(
+                child: const Icon(Icons.add),
+                onTap: () {
+                  textFieldTask = Task.addChild;
+                  parentId = rootId;
+                  widget.toggleVisibility();
+                },
+              ),
+              // bug is there in this section
+              // GestureDetector(
+              //   child: const Icon(Icons.delete_forever),
+              //   onLongPress: () {
+              //     multitree.deleteNode(rootId, widget.nodeList);
+              //     widget.nodeList = multitree.build();
+              //     // widget.toggleVisibility();
+              //   },
+              // )
+            ],
+          ),
+        ),
+        onExpansionChanged: (value) {
+          widget.setVisibilityFalse();
+        },
       ),
     );
   }

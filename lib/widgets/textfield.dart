@@ -45,8 +45,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
         decoration: InputDecoration(
             hintText:
                 HomeState.taskTree.currentState!.textFieldTask == Task.addChild
-                    ? "enter new task"
-                    : "enter new title",
+                    ? "Enter new Task Title"
+                    : "Enter new Title",
             contentPadding: EdgeInsets.all(10),
             suffixIcon: IconButton(
               icon: Icon(Icons.check),
