@@ -44,9 +44,8 @@ extension Multitree on NodeList {
     if (id + 1 > this.length) {
       for (var i = this.length; i < id; i++) this.add(null);
       this.add(node);
-    } else if (this[id] != null) {
-      throw MultitreeException('Found two or more nodes with same ID $id');
     } else {
+      assert(this[id] == null);
       this[id] = node;
     }
   }
@@ -57,6 +56,9 @@ extension Multitree on NodeList {
       if (node == null) continue;
 
       for (var childId in node.childIdList) {
+        if (childId >= this.length) throw MultitreeException(
+          'Node ID $id has non-existent child $childId'
+        );
         final childNode = this[childId];
         if (childNode == null) throw MultitreeException(
           'Node ID $id has non-existent child $childId'

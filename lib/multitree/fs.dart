@@ -77,7 +77,7 @@ void addNodeData(
 }
 
 int _idFromDir(final String nodeDirName) {
-  final id = int.tryParse(path.basename(nodeDirName));
+  final id = _tryParseUint(path.basename(nodeDirName));
   if (id == null) throw FsException('$nodeDirName is not a valid node directory');
 
   return id;
@@ -100,7 +100,7 @@ TaskStatus _statusFromFile(final String nodeDirName) {
 
   final statusStr = statusFile.readAsStringSync();
 
-  final statusNum = int.tryParse(statusStr);
+  final statusNum = _tryParseUint(statusStr);
   if (statusNum == null) throw FsException(
     '$nodeDirName contains invalid status: $statusNum'
   );
@@ -111,10 +111,21 @@ TaskStatus _statusFromFile(final String nodeDirName) {
 List<int> _childIdListFromFs(final String nodeDirName) {
   final List<int> childIdList = [];
   for (var entity in Directory(nodeDirName).listSync()) {
-    final childId = int.tryParse(path.basename(entity.path));
+    final childId = _tryParseUint(path.basename(entity.path));
     if (childId == null) continue;
     childIdList.add(childId);
   }
 
   return childIdList;
 }
+
+int? _tryParseUint(final String str) {
+  final number = int.tryParse(str);
+  if (!_startsWithDigit(str) || !_endsWithDigit(str) || number == null) {
+    return null;
+  };
+  return number;
+}
+
+bool _startsWithDigit(final String str) => (str.codeUnitAt(0) ^ 0x30) <= 9;
+bool _endsWithDigit(final String str) => (str.codeUnitAt(str.length - 1) ^ 0x30) <= 9;
