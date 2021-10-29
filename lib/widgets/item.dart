@@ -23,15 +23,15 @@ class Item extends StatefulWidget {
   static const indentWidth = 20.0;
   static const padding = 5.0;
 
-  final List<int> _pathbuf;
+  final List<int> pathbuf;
   int unlisted = 0;
 
-  Item(this._pathbuf);
+  Item(this.pathbuf);
 
   @override State<Item> createState() => ItemState();
 
-  int get id => _pathbuf[_pathbuf.length - 1];
-  int get depth => _pathbuf.length - 1;
+  int get id => pathbuf[pathbuf.length - 1];
+  int get depth => pathbuf.length - 1;
 }
 
 class ItemState extends State<Item> {

@@ -61,7 +61,7 @@ class FlattreeBoxyDelegate extends BoxyDelegate {
         hasChildren = true;
         maxDepth = currentDepth + 1;
 
-        if (!addItem(Item([...item._pathbuf, childId]), context)) break OUTER;
+        if (!addItem(Item([...item.pathbuf, childId]), context)) break OUTER;
       }
 
       if (!hasChildren) {
@@ -115,15 +115,15 @@ class FlattreeBoxyDelegate extends BoxyDelegate {
       final rItem = rItemBoxy.parentData;
       var l = 0;
       var r = 0;
-      for (; l < lItem._pathbuf.length && r < rItem._pathbuf.length; l++, r++) {
-        final lNode = context.nodeList[lItem._pathbuf[l]]!;
-        final rNode = context.nodeList[rItem._pathbuf[r]]!;
+      for (; l < lItem.pathbuf.length && r < rItem.pathbuf.length; l++, r++) {
+        final lNode = context.nodeList[lItem.pathbuf[l]]!;
+        final rNode = context.nodeList[rItem.pathbuf[r]]!;
 
         var comp = lNode.title.compareTo(rNode.title);
         if (comp != 0) return comp;
       }
 
-      if (l == lItem._pathbuf.length) return -1;
+      if (l == lItem.pathbuf.length) return -1;
       return 1;
     }
   );
