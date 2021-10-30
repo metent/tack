@@ -15,22 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-import 'package:tack/widgets/multitree.dart';
-import 'package:tack/widgets/flattree.dart';
+import 'package:tack/multitree/nodelist.dart';
+import 'package:tack/multitree/fs.dart' as fs;
 
-void main() => runApp(Application());
+class MultitreeWidget extends InheritedWidget {
+  static const dataDirName = 'test-tree';
 
-class Application extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tack',
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Task Tree')),
-        body: MultitreeWidget(child: Flattree()),
-      ),
-    );
+  late final NodeList nodeList;
+
+  static MultitreeWidget of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<MultitreeWidget>()!;
   }
+
+  MultitreeWidget({Key? key, required Widget child}) : super(key: key, child: child) {
+    fs.ensureRootNodeDir(dataDirName);
+    nodeList = fs.multitreeFromFs(dataDirName);
+  }
+
+  @override
+  bool updateShouldNotify(MultitreeWidget oldMtree) => true;
 }
