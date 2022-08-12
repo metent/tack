@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   path: ^1.8.0
   boxy: ^2.0.4
+  date_time_picker: "^2.1.0"
 
 dev_dependencies:
   flutter_test:
@@ -60,7 +61,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    - assets/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

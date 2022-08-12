@@ -15,22 +15,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'package:tack/widgets/multitree.dart';
 import 'package:tack/widgets/flattree.dart';
 
 void main() => runApp(Application());
 
-class Application extends StatelessWidget {
+class Application extends StatefulWidget {
   @override
+  State<Application> createState() => _ApplicationState();
+}
+
+class _ApplicationState extends State<Application> {
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return (MaterialApp(
       title: 'Tack',
+      // theme: ThemeData(
+      //     // primaryColor: Color(0xff0A0E21),
+      //     accentColor: Colors.teal,
+      //     scaffoldBackgroundColor: Color(0XFF18181B),
+      //     textTheme: TextTheme(bodyText1: TextStyle(color: Colors.white))),
       home: Scaffold(
-        appBar: AppBar(title: const Text('Task Tree')),
-        body: MultitreeWidget(child: Flattree()),
+        appBar: AppBar(
+          title: const Text("Tasks"),
+          elevation: 0,
+          backgroundColor: Color(0x00000000),
+        ),
+        body: MultitreeWidget(
+          child: Flattree(),
+        ),
+        backgroundColor: const Color(0XFF18181B),
       ),
-    );
+      debugShowCheckedModeBanner: false,
+    ));
   }
 }

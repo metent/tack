@@ -23,17 +23,22 @@ import 'package:tack/multitree/fs.dart' as fs;
 class MultitreeWidget extends InheritedWidget {
   static const dataDirName = 'test-tree';
 
-  late final NodeList nodeList;
+  late NodeList nodeList;
 
   static MultitreeWidget of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<MultitreeWidget>()!;
   }
 
-  MultitreeWidget({Key? key, required Widget child}) : super(key: key, child: child) {
+  MultitreeWidget({Key? key, required Widget child})
+      : super(key: key, child: child) {
     fs.ensureRootNodeDir(dataDirName);
-    nodeList = fs.multitreeFromFs(dataDirName);
+    nodeList = fs.multiTreeFromFs(dataDirName);
   }
 
   @override
   bool updateShouldNotify(MultitreeWidget oldMtree) => true;
+
+  void buildMultitree() {
+    nodeList = fs.multiTreeFromFs(dataDirName);
+  }
 }

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:boxy/boxy.dart';
@@ -24,31 +25,94 @@ import 'package:tack/widgets/item.dart';
 import 'package:tack/multitree/nodelist.dart';
 
 class Flattree extends StatefulWidget {
-  @override State<Flattree> createState() => FlattreeState();
+  const Flattree({Key? key}) : super(key: key);
+
+  @override
+  State<Flattree> createState() => FlattreeState();
 }
 
 class FlattreeState extends State<Flattree> {
-  int _rootId = 0;
+  List<int> pathbuf = [0];
 
-  @override Widget build(BuildContext context) => CustomBoxy(
-    delegate: FlattreeBoxyDelegate(_rootId),
-    children: [],
-  );
+  @override
+  Widget build(BuildContext context) => FlattreeContext(
+      child: GestureDetector(
+        onHorizontalDragEnd: (_) {
+          back();
+        },
+        child: Container(
+          margin: EdgeInsets.fromLTRB(25, 15, 25, 15),
+          child: CustomBoxy(
+            delegate: FlattreeBoxyDelegate(pathbuf),
+            children: [],
+          ),
+        ),
+      ),
+      update: update,
+      updateRoot: updateRoot);
+
+  void updateRoot(List<int> newPathBuf) {
+    pathbuf = newPathBuf;
+    setState(() {});
+  }
+
+  void update() {
+    setState(() {});
+  }
+
+  void back() {
+    if (pathbuf.length != 1) {
+      pathbuf = pathbuf.sublist(0, pathbuf.length - 1);
+      setState(() {});
+    }
+  }
+}
+
+typedef VoidCallbackInt = void Function(List<int>);
+typedef VoidCallback = void Function();
+
+class FlattreeContext extends InheritedWidget {
+  VoidCallback update;
+  VoidCallbackInt updateRoot;
+
+  static FlattreeContext of(BuildContext context) {
+    if (context.dependOnInheritedWidgetOfExactType<FlattreeContext>() == null) {
+      print("noooo");
+    }
+    return context.dependOnInheritedWidgetOfExactType<FlattreeContext>()!;
+  }
+
+  FlattreeContext(
+      {Key? key,
+      required Widget child,
+      required VoidCallback update,
+      required VoidCallbackInt updateRoot})
+      : update = update,
+        updateRoot = updateRoot,
+        super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(FlattreeContext oldContext) => true;
 }
 
 class FlattreeBoxyDelegate extends BoxyDelegate {
-  final int _rootId;
+  final List<int> rootPathBuf;
 
-  FlattreeBoxyDelegate(this._rootId);
+  FlattreeBoxyDelegate(this.rootPathBuf);
 
-  @override Size layout() {
+  @override
+  bool shouldRelayout(FlattreeBoxyDelegate old) => true;
+
+  @override
+  Size layout() {
     final context = LayoutContext(MultitreeWidget.of(buildContext).nodeList);
 
-    addItem(Item([0]), context);
+    addItem(Item.root([...rootPathBuf]), context);
 
     var currentDepth = 0;
     var maxDepth = 0;
-    OUTER: while (context.filledHeight < constraints.maxHeight) {
+    OUTER:
+    while (context.filledHeight < constraints.maxHeight) {
       var hasChildren = false;
       final length = context.itemBoxyList.length;
       for (var i = 0; i < length; i++) {
@@ -61,11 +125,14 @@ class FlattreeBoxyDelegate extends BoxyDelegate {
         hasChildren = true;
         maxDepth = currentDepth + 1;
 
-        if (!addItem(Item([...item.pathbuf, childId]), context)) break OUTER;
+        if (!addItem(Item([...item.pathbuf, childId], item.depth + 1), context)) break OUTER;
       }
 
       if (!hasChildren) {
-        if (maxDepth > currentDepth) { currentDepth += 1; } else break;
+        if (maxDepth > currentDepth) {
+          currentDepth += 1;
+        } else
+          break;
       }
     }
 
@@ -83,11 +150,12 @@ class FlattreeBoxyDelegate extends BoxyDelegate {
     itemBoxy.parentData = item;
     itemBoxy.layout(constraints);
 
-    if (context.filledHeight + itemBoxy.size.height > constraints.maxHeight) {
+    if (context.filledHeight + itemBoxy.size.height + 10 >
+        constraints.maxHeight) {
       itemBoxy.ignore();
       return false;
     }
-    context.filledHeight += itemBoxy.size.height;
+    context.filledHeight += itemBoxy.size.height + 10;
 
     context.itemBoxyList.add(itemBoxy);
     context.lastChildIndexList[item.id] = context.itemBoxyList.length - 1;
@@ -109,30 +177,35 @@ class FlattreeBoxyDelegate extends BoxyDelegate {
     }
   }
 
-  void sortItemList(LayoutContext context) => context.itemBoxyList.sort(
-    (lItemBoxy, rItemBoxy) {
-      final lItem = lItemBoxy.parentData;
-      final rItem = rItemBoxy.parentData;
-      var l = 0;
-      var r = 0;
-      for (; l < lItem.pathbuf.length && r < rItem.pathbuf.length; l++, r++) {
-        final lNode = context.nodeList[lItem.pathbuf[l]]!;
-        final rNode = context.nodeList[rItem.pathbuf[r]]!;
+  void sortItemList(LayoutContext context) =>
+      context.itemBoxyList.sort((lItemBoxy, rItemBoxy) {
+        final lItem = lItemBoxy.parentData;
+        final rItem = rItemBoxy.parentData;
+        var l = 0;
+        var r = 0;
+        for (; l < lItem.pathbuf.length && r < rItem.pathbuf.length; l++, r++) {
+          final lNode = context.nodeList[lItem.pathbuf[l]]!;
+          final rNode = context.nodeList[rItem.pathbuf[r]]!;
 
-        var comp = lNode.title.compareTo(rNode.title);
-        if (comp != 0) return comp;
-      }
+          final priComp = lNode.pri.compareTo(rNode.pri);
+          if (priComp != 0) return -priComp;
 
-      if (l == lItem.pathbuf.length) return -1;
-      return 1;
-    }
-  );
+          final dateComp = lNode.dueDate.compareTo(rNode.dueDate);
+          if (dateComp != 0) return dateComp;
+
+          final comp = lNode.title.compareTo(rNode.title);
+          if (comp != 0) return comp;
+        }
+
+        if (l == lItem.pathbuf.length) return -1;
+        return 1;
+      });
 
   void positionItems(LayoutContext context) {
     double height = 0;
     for (var itemBoxy in context.itemBoxyList) {
       itemBoxy.position(Offset(0, height));
-      height += itemBoxy.size.height;
+      height += itemBoxy.size.height + 10;
     }
   }
 }
@@ -144,11 +217,11 @@ class LayoutContext {
   final List<ChildIterator?> ciList;
   double filledHeight = 0;
 
-  LayoutContext(this.nodeList) :
-    lastChildIndexList = List.filled(nodeList.length, 0, growable: false),
-    ciList = List.generate(nodeList.length, (id) {
-      return id != null ? ChildIterator(nodeList, id) : null;
-    });
+  LayoutContext(this.nodeList)
+      : lastChildIndexList = List.filled(nodeList.length, 0, growable: false),
+        ciList = List.generate(nodeList.length, (id) {
+          return nodeList[id] != null ? ChildIterator(nodeList, id) : null;
+        });
 }
 
 class ChildIterator {
@@ -157,7 +230,8 @@ class ChildIterator {
 
   ChildIterator(final NodeList nodeList, final int parentId) {
     _childIdList = [...nodeList[parentId]!.childIdList];
-    _childIdList.sort((l, r) => nodeList[l]!.title.compareTo(nodeList[r]!.title));
+    _childIdList
+        .sort((l, r) => nodeList[l]!.title.compareTo(nodeList[r]!.title));
   }
 
   int? next() {
@@ -166,4 +240,3 @@ class ChildIterator {
     return _childIdList[_childIndex - 1];
   }
 }
-
