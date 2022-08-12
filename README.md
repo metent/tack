@@ -86,7 +86,7 @@ Tack uses a unique approach to show tasks to the user. It makes use of all avail
 
 ## Build Instructions:
 
-To build the project, ensure that flutter (beta channel) is installed in the system and is in `PATH`. Then run the following commands.
+To build the project, ensure that flutter is installed in the system and is in `PATH`. Then run the following commands.
 
 ```
 git clone -b rough https://github.com/metent/tack
